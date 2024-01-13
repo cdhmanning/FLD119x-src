@@ -1,0 +1,36 @@
+
+*** These modified files were found in JOE when it aborted on Sat Jan 13 13:52:51 2024
+*** JOE was aborted because the terminal closed
+
+*** File '(Unnamed)'
+rand(
+rand
+Switch[5]
+switch
+mux
+MUX
+mux
+digits_co
+SevSegM
+Enable
+SevSegDisp
+Digits
+
+*** File '(Unnamed)'
+include/stdlib.h
+include/stdio.h
+gpio_top.v
+gpio_defines.v
+gpio_top.v
+rvfpganexys.xdc
+SweRVolfSoC/swervolf_core.v
+SweRVolfSoC/Interconnect/WishboneInterconnect/wb_intercon.v
+swervolf_syscon.v
+swervolf_syscon.v
+swervolf_syscon.v
+
+*** File '* Startup Log *'
+Processing '/etc/joe/joerc'...
+Processing '/etc/joe/ftyperc'...
+Finished processing /etc/joe/ftyperc
+Finished processing /etc/joe/joerc
