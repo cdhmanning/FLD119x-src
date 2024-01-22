@@ -53,6 +53,7 @@ module rvfpganexys
     output wire        o_accel_cs_n,
     output wire        o_accel_mosi,
     input wire         i_accel_miso,
+    input wire [4:0]   i_buttons,
     output wire        accel_sclk);
 
    wire [15:0] 	       gpio_out;
@@ -256,6 +257,7 @@ module rvfpganexys
       .i_ram_init_done  (litedram_init_done),
       .i_ram_init_error (litedram_init_error),
       .io_data        ({i_sw[15:0],gpio_out[15:0]}),
+      .i_buttons      (i_buttons),
       .AN (AN),
       .Digits_Bits ({CA,CB,CC,CD,CE,CF,CG}),
       .o_accel_sclk   (accel_sclk),

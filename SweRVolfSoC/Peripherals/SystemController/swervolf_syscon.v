@@ -28,6 +28,7 @@ module swervolf_syscon
   (input wire i_clk,
    input wire 	     i_rst,
    input wire        gpio_irq,
+   input wire        gpio2_irq,
    input wire        ptc_irq,
    output reg 	     o_timer_irq,
    output wire 	     o_sw_irq3,
@@ -206,20 +207,23 @@ module swervolf_syscon
 	     if (i_wb_sel[2]) mtimecmp[55:48] <= i_wb_dat[23:16];
 	     if (i_wb_sel[3]) mtimecmp[63:56] <= i_wb_dat[31:24];
 	  end
-	  12 : begin //0x30-3f
+	  12 : begin //0x30-33
 	     if (i_wb_sel[0]) irq_timer_cnt[7:0]   <= i_wb_dat[7:0]  ;
 	     if (i_wb_sel[1]) irq_timer_cnt[15:8]  <= i_wb_dat[15:8] ;
 	     if (i_wb_sel[2]) irq_timer_cnt[23:16] <= i_wb_dat[23:16];
 	     if (i_wb_sel[3]) irq_timer_cnt[31:24] <= i_wb_dat[31:24];
 	  end
-	  13 : begin
+	  13 : begin //0x34-0x37
 	     if (i_wb_sel[0])
 	       irq_timer_en <= i_wb_dat[0];
 	  end
-  	14 : begin
-  	   if (i_wb_sel[0]) Enables_Reg[7:0]  <= i_wb_dat[7:0];
+  	14 : begin //0x38-0x3B
+       if (i_wb_sel[0]) Enables_Reg[7:0]   <= i_wb_dat[7:0];
+       if (i_wb_sel[1]) Enables_Reg[15:8]  <= i_wb_dat[15:8];
+       if (i_wb_sel[2]) Enables_Reg[23:16] <= i_wb_dat[23:16];
+       if (i_wb_sel[3]) Enables_Reg[31:24] <= i_wb_dat[31:24];
   	end
-  	15 : begin
+  	15 : begin //0x3C-0x3F
        if (i_wb_sel[0]) Digits_Reg[7:0]   <= i_wb_dat[7:0];
        if (i_wb_sel[1]) Digits_Reg[15:8]  <= i_wb_dat[15:8];
        if (i_wb_sel[2]) Digits_Reg[23:16] <= i_wb_dat[23:16];
@@ -274,9 +278,28 @@ module swervolf_syscon
    end
 
   // Eight-Digit 7 Segment Displays
+  //
+  // This can operate in two modes:
+  // if Bit 31 of Enables is 0, then it operates according to the old 
+  // Swervolf mode.
+  // if Bit 31 of Enables is 1, then it operates according to the cdhm mode 
+  // Where bits 27..0 of each of the registers holds 4 seven bit patterns for each segment.
+  
 
-    reg  [ 7:0]  Enables_Reg;
+    reg  [31:0]  Enables_Reg;
     reg  [31:0]  Digits_Reg;
+    
+  //  wire [7:0]     AN_orig;
+  //  wire [6:0]     Digits_Bits_orig;
+  //  wire [7:0]     AN_cdhm;
+  //  wire [6:0]     Digits_Bits_cdhm;
+    
+    
+  //  always @(*)
+  //  begin
+  //      AN = Enables_Reg[31] ? AN_cdhm : AN_orig;
+  //      Digits_Bits = Enables_Reg[31] ? Digits_Bits_cdhm : Digits_Bits_orig;        
+  //  end
 
 	  SevSegDisplays_Controller SegDispl_Ctr(
 	    .clk               (i_clk),    
@@ -301,7 +324,7 @@ parameter COUNT_MAX = 20;
 module SevSegDisplays_Controller(
                      input wire           clk,
                      input wire           rst_n,
-                     input wire    [ 7:0] Enables_Reg,
+                     input wire    [31:0] Enables_Reg,
                      input wire    [31:0] Digits_Reg,
                      output wire   [ 7:0] AN,
                      output wire   [ 6:0] Digits_Bits);
@@ -309,27 +332,32 @@ module SevSegDisplays_Controller(
   wire [(COUNT_MAX-1):0] countSelection;
   wire [ 3:0] DecNumber;
   wire overflow_o_count;
+  wire [6:0] decoder_output;
+  wire [6:0] cdhm_decoder_output;
+  wire cdhm_mode;
+  wire [7:0]  cathode_enable;
+  wire [ 7:0] [7:0] enable;
 
+  SevenSegDecoder SevSegDec(.data(DecNumber), .seg(decoder_output));
 
-
-  SevenSegDecoder SevSegDec(.data(DecNumber), .seg(Digits_Bits));
-
-
+  assign Digits_Bits = cdhm_mode ? cdhm_decoder_output : decoder_output;
 
   counter #(COUNT_MAX)  counter20(clk, ~rst_n, 1'b0, 1'b1, 1'b0, 1'b0, 16'b0, countSelection, overflow_o_count);
 
 
 
-  wire [ 7:0] [7:0] enable;
+  
+  assign cdhm_mode = Enables_Reg[31];
+  assign cathode_enable = cdhm_mode ? 8'h00 : Enables_Reg[7:0];
 
-  assign enable[0] = (Enables_Reg | 8'hfe);
-  assign enable[1] = (Enables_Reg | 8'hfd);
-  assign enable[2] = (Enables_Reg | 8'hfb);
-  assign enable[3] = (Enables_Reg | 8'hf7);
-  assign enable[4] = (Enables_Reg | 8'hef);
-  assign enable[5] = (Enables_Reg | 8'hdf);
-  assign enable[6] = (Enables_Reg | 8'hbf);
-  assign enable[7] = (Enables_Reg | 8'h7f);
+  assign enable[0] = (cathode_enable  | 8'hfe);
+  assign enable[1] = (cathode_enable | 8'hfd);
+  assign enable[2] = (cathode_enable | 8'hfb);
+  assign enable[3] = (cathode_enable | 8'hf7);
+  assign enable[4] = (cathode_enable | 8'hef);
+  assign enable[5] = (cathode_enable | 8'hdf);
+  assign enable[6] = (cathode_enable | 8'hbf);
+  assign enable[7] = (cathode_enable | 8'h7f);
 
   SevSegMux
   #(
@@ -366,6 +394,30 @@ module SevSegDisplays_Controller(
     .OUT_DATA(DecNumber),
     .SEL(countSelection[(COUNT_MAX-1):(COUNT_MAX-3)])
   );
+  
+   wire [ 7:0] [6:0] cdigits_concat;
+
+  assign cdigits_concat[0] = Digits_Reg[6:0];
+  assign cdigits_concat[1] = Digits_Reg[13:7];
+  assign cdigits_concat[2] = Digits_Reg[20:14];
+  assign cdigits_concat[3] = Digits_Reg[27:21];
+  assign cdigits_concat[4] = Enables_Reg[6:0];
+  assign cdigits_concat[5] = Enables_Reg[13:7];
+  assign cdigits_concat[6] = Enables_Reg[20:14];
+  assign cdigits_concat[7] = Enables_Reg[27:21];
+
+  SevSegMux
+  #(
+    .DATA_WIDTH(7),
+    .N_IN(8)
+  )
+  cdhm_select
+  (
+    .IN_DATA(cdigits_concat),
+    .OUT_DATA(cdhm_decoder_output),
+    .SEL(countSelection[(COUNT_MAX-1):(COUNT_MAX-3)])
+  );
+  
 
 endmodule
 

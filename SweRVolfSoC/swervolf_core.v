@@ -176,6 +176,7 @@ module swervolf_core
     output wire        o_accel_cs_n,
     output wire        o_accel_mosi,
     input wire         i_accel_miso,
+    input wire [4:0]   i_buttons,
 
 `endif
 
@@ -385,6 +386,7 @@ module swervolf_core
       `endif
 
       .gpio_irq         (gpio_irq),
+      .gpio2_irq        (gpio2_irq),
       .ptc_irq          (ptc_irq),
       .o_timer_irq      (timer_irq),
       .o_sw_irq3        (sw_irq3),
@@ -542,7 +544,37 @@ module swervolf_core
 
    );
 
+   // GPIO for i_buttons[4:0]
+   wire        gpio2_irq;
 
+   gpio_top gpio2_module(
+        .wb_clk_i     (clk), 
+        .wb_rst_i     (wb_rst), 
+        .wb_cyc_i     (wb_m2s_gpio2_cyc), 
+        .wb_adr_i     ({2'b0,wb_m2s_gpio2_adr[5:2],2'b0}), 
+        .wb_dat_i     (wb_m2s_gpio2_dat), 
+        .wb_sel_i     (4'b1111),
+        .wb_we_i      (wb_m2s_gpio2_we), 
+        .wb_stb_i     (wb_m2s_gpio2_stb), 
+        .wb_dat_o     (wb_s2m_gpio2_dat),
+        .wb_ack_o     (wb_s2m_gpio2_ack), 
+        .wb_err_o     (wb_s2m_gpio2_err),
+        .wb_inta_o    (gpio2_irq),
+        // External GPIO Interface
+
+  `ifdef ViDBo
+        .ext_pad_i     (),
+        .ext_pad_o     ()
+  `elsif Pipeline
+        .ext_pad_i     (),
+        .ext_pad_o     ()
+  `else
+        .ext_pad_i     (i_buttons[4:0]),
+        .ext_pad_o     (),
+        .ext_padoe_o   ()
+  `endif
+
+   );
 
    // PTC
    wire        ptc_irq;
