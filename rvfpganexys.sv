@@ -53,8 +53,9 @@ module rvfpganexys
     output wire        o_accel_cs_n,
     output wire        o_accel_mosi,
     input wire         i_accel_miso,
+    output wire        accel_sclk,
     input wire [4:0]   i_buttons,
-    output wire        accel_sclk);
+    output wire [2:0]  o_rgb);
 
    wire [15:0] 	       gpio_out;
 
@@ -263,6 +264,7 @@ module rvfpganexys
       .o_accel_sclk   (accel_sclk),
       .o_accel_cs_n   (o_accel_cs_n),
       .o_accel_mosi   (o_accel_mosi),
+      .o_rgb          (o_rgb),
       .i_accel_miso   (i_accel_miso));
 
    always @(posedge clk_core) begin

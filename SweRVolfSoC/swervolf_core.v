@@ -177,6 +177,7 @@ module swervolf_core
     output wire        o_accel_mosi,
     input wire         i_accel_miso,
     input wire [4:0]   i_buttons,
+    output wire [2:0]  o_rgb,
 
 `endif
 
@@ -599,6 +600,66 @@ module swervolf_core
         .oen_padoen_o ()
    );
 
+
+   ptc_top timer_ptc2(
+        .wb_clk_i     (clk), 
+        .wb_rst_i     (wb_rst), 
+        .wb_cyc_i     (wb_m2s_ptc2_cyc), 
+        .wb_adr_i     ({2'b0,wb_m2s_ptc2_adr[5:2],2'b0}), 
+        .wb_dat_i     (wb_m2s_ptc2_dat), 
+        .wb_sel_i     (4'b1111),
+        .wb_we_i      (wb_m2s_ptc2_we), 
+        .wb_stb_i     (wb_m2s_ptc2_stb), 
+        .wb_dat_o     (wb_s2m_ptc2_dat),
+        .wb_ack_o     (wb_s2m_ptc2_ack), 
+        .wb_err_o     (wb_s2m_ptc2_err),
+        .wb_inta_o    (),
+        // External PTC Interface
+        .gate_clk_pad_i (),
+        .capt_pad_i (),
+        .pwm_pad_o (o_rgb[0]),
+        .oen_padoen_o ()
+   );
+
+   ptc_top timer_ptc3(
+        .wb_clk_i     (clk), 
+        .wb_rst_i     (wb_rst), 
+        .wb_cyc_i     (wb_m2s_ptc3_cyc), 
+        .wb_adr_i     ({2'b0,wb_m2s_ptc3_adr[5:2],2'b0}), 
+        .wb_dat_i     (wb_m2s_ptc3_dat), 
+        .wb_sel_i     (4'b1111),
+        .wb_we_i      (wb_m2s_ptc3_we), 
+        .wb_stb_i     (wb_m2s_ptc3_stb), 
+        .wb_dat_o     (wb_s2m_ptc3_dat),
+        .wb_ack_o     (wb_s2m_ptc3_ack), 
+        .wb_err_o     (wb_s2m_ptc3_err),
+        .wb_inta_o    (),
+        // External PTC Interface
+        .gate_clk_pad_i (),
+        .capt_pad_i (),
+        .pwm_pad_o (o_rgb[1]),
+        .oen_padoen_o ()
+   );
+
+   ptc_top timer_ptc4(
+        .wb_clk_i     (clk), 
+        .wb_rst_i     (wb_rst), 
+        .wb_cyc_i     (wb_m2s_ptc4_cyc), 
+        .wb_adr_i     ({2'b0,wb_m2s_ptc4_adr[5:2],2'b0}), 
+        .wb_dat_i     (wb_m2s_ptc4_dat), 
+        .wb_sel_i     (4'b1111),
+        .wb_we_i      (wb_m2s_ptc4_we), 
+        .wb_stb_i     (wb_m2s_ptc4_stb), 
+        .wb_dat_o     (wb_s2m_ptc4_dat),
+        .wb_ack_o     (wb_s2m_ptc4_ack), 
+        .wb_err_o     (wb_s2m_ptc4_err),
+        .wb_inta_o    (),
+        // External PTC Interface
+        .gate_clk_pad_i (),
+        .capt_pad_i (),
+        .pwm_pad_o (o_rgb[2]),
+        .oen_padoen_o ()
+   );
 
    // SPI for the Accelerometer
    wire [7:0]            spi2_rdt;
